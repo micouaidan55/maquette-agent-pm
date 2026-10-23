@@ -1,0 +1,963 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Assistant d'impact projets</title>
+<style>
+  :root {
+    --ink: #1c2b3a;
+    --ink-soft: #52606d;
+    --ink-faint: #7b8794;
+    --page: #f3f5f7;
+    --surface: #ffffff;
+    --line: #d9dee4;
+    --line-soft: #e8ecf0;
+    --brand: #0b5d66;
+    --brand-soft: #e3f1f2;
+    --crit: #b42318;
+    --crit-bg: #fdeceb;
+    --watch: #9a5800;
+    --watch-bg: #fff3dc;
+    --info: #2d5da8;
+    --info-bg: #eaf1fb;
+    --ok: #1f7a3f;
+    --ok-bg: #e6f4ea;
+    --mark: #fff0a8;
+    --radius: 6px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: "Segoe UI", "Segoe UI Variable", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--ink);
+    background: var(--page);
+    font-variant-numeric: tabular-nums;
+  }
+  button, select { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+  /* Structure */
+  .app { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+  .rail {
+    background: var(--ink);
+    color: #dfe6ec;
+    padding: 20px 14px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 22px; }
+  .brand-mark {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: var(--brand); display: grid; place-items: center;
+  }
+  .brand-name { font-weight: 600; line-height: 1.2; color: #fff; }
+  .brand-sub { font-size: 12px; color: #9fb0bf; }
+  .nav-btn {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; text-align: left;
+    background: none; border: 0; border-radius: var(--radius);
+    padding: 9px 10px; color: #c9d3dc;
+  }
+  .nav-btn:hover { background: rgba(255,255,255,.06); color: #fff; }
+  .nav-btn[aria-current="page"] { background: rgba(255,255,255,.12); color: #fff; font-weight: 600; }
+  .nav-btn svg { flex: none; opacity: .85; }
+  .rail-foot { margin-top: auto; font-size: 12px; color: #8899a8; padding: 0 8px; }
+
+  .main { min-width: 0; display: flex; flex-direction: column; }
+  .topbar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px;
+    padding: 14px 32px; background: var(--surface); border-bottom: 1px solid var(--line);
+  }
+  .field { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-soft); }
+  .field select {
+    border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--surface); padding: 6px 30px 6px 10px; color: var(--ink); font-weight: 600;
+  }
+  .topbar-note { margin-left: auto; font-size: 13px; color: var(--ink-faint); }
+  .view { padding: 28px 32px 64px; max-width: 1180px; width: 100%; }
+
+  /* Common */
+  h1 { font-size: 26px; line-height: 1.25; font-weight: 600; margin: 0 0 6px; letter-spacing: -.01em; }
+  h2 { font-size: 18px; font-weight: 600; margin: 0 0 12px; }
+  h3 { font-size: 15px; font-weight: 600; margin: 0 0 8px; }
+  p { margin: 0 0 10px; }
+  .muted { color: var(--ink-soft); }
+  .faint { color: var(--ink-faint); font-size: 13px; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+  .btn {
+    border: 1px solid var(--line); background: var(--surface);
+    border-radius: var(--radius); padding: 7px 14px; font-weight: 600; font-size: 14px;
+  }
+  .btn:hover { border-color: var(--ink-faint); }
+  .btn-primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .btn-primary:hover { background: #084a52; border-color: #084a52; }
+  .btn-primary:disabled { background: #9db8bb; border-color: #9db8bb; cursor: not-allowed; }
+  .btn-quiet { border-color: transparent; background: none; color: var(--brand); padding-left: 0; padding-right: 0; }
+  .btn-quiet:hover { text-decoration: underline; border-color: transparent; }
+
+  .sev {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap;
+  }
+  .sev::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .sev-crit { color: var(--crit); background: var(--crit-bg); }
+  .sev-watch { color: var(--watch); background: var(--watch-bg); }
+  .sev-info { color: var(--info); background: var(--info-bg); }
+  .pill { font-size: 12.5px; padding: 2px 8px; border-radius: 999px; background: var(--line-soft); color: var(--ink-soft); white-space: nowrap; }
+  .pill-ok { background: var(--ok-bg); color: var(--ok); font-weight: 600; }
+
+  /* Scan */
+  .brief { margin-bottom: 22px; }
+  .brief h1 { max-width: 44ch; }
+  .brief-counts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .finding-list { list-style: none; margin: 0; padding: 0; }
+  .finding {
+    display: grid; grid-template-columns: 6px 1fr auto; gap: 0 18px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    margin-bottom: 10px; overflow: hidden;
+  }
+  .finding-bar { background: var(--line); }
+  .finding[data-sev="crit"] .finding-bar { background: var(--crit); }
+  .finding[data-sev="watch"] .finding-bar { background: #d98a00; }
+  .finding[data-sev="info"] .finding-bar { background: var(--info); }
+  .finding-body { padding: 14px 0; min-width: 0; }
+  .finding-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .finding-title { font-weight: 600; font-size: 16px; }
+  .finding-impact { color: var(--ink); margin: 2px 0 8px; max-width: 75ch; }
+  .finding-meta { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 13px; color: var(--ink-soft); }
+  .finding-meta b { color: var(--ink); font-weight: 600; }
+  .finding-side { padding: 14px 16px 14px 0; display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; gap: 10px; }
+  .finding.is-ignored { opacity: .55; }
+  .finding.is-ignored .finding-title { text-decoration: line-through; }
+  .more-info { margin-top: 6px; }
+  .empty { padding: 28px; text-align: center; }
+
+  /* Drawer */
+  .scrim { position: fixed; inset: 0; background: rgba(28,43,58,.35); opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .drawer {
+    position: fixed; top: 0; right: 0; height: 100%; width: min(620px, 100%);
+    background: var(--surface); box-shadow: -8px 0 30px rgba(28,43,58,.18);
+    transform: translateX(100%); transition: transform .25s ease;
+    display: flex; flex-direction: column;
+  }
+  .drawer-open .scrim { opacity: 1; pointer-events: auto; }
+  .drawer-open .drawer { transform: none; }
+  .drawer-head { padding: 22px 28px 16px; border-bottom: 1px solid var(--line); }
+  .drawer-head h2 { font-size: 21px; line-height: 1.3; margin: 10px 0 4px; }
+  .drawer-close { position: absolute; top: 16px; right: 18px; border: 0; background: none; font-size: 24px; line-height: 1; padding: 6px; color: var(--ink-soft); }
+  .drawer-body { padding: 20px 28px; overflow-y: auto; flex: 1; }
+  .drawer-foot { padding: 14px 28px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: #fafbfc; }
+  .section { margin-bottom: 24px; }
+  .why { list-style: none; padding: 0; margin: 0; }
+  .why li { display: grid; grid-template-columns: 110px 1fr; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line-soft); }
+  .why li:first-child { border-top: 0; }
+  .why-dim { font-weight: 600; color: var(--ink-soft); font-size: 14px; }
+  .evidence {
+    margin: 0; padding: 14px 16px; border-left: 3px solid var(--brand);
+    background: #f7f9fa; border-radius: 0 var(--radius) var(--radius) 0;
+    font-family: Georgia, "Times New Roman", serif; font-size: 15.5px; line-height: 1.6;
+  }
+  .evidence mark { background: var(--mark); padding: 1px 2px; border-radius: 2px; color: inherit; }
+  .evidence-src { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: 13px; color: var(--ink-soft); margin-top: 10px; }
+  .doc-ico { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); font-weight: 600; }
+  .action-box { border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+  .action-box p { margin: 0 0 8px; font-weight: 600; }
+  .human-note { font-size: 13px; color: var(--ink-soft); display: flex; gap: 8px; align-items: flex-start; margin-top: 10px; }
+
+  /* Report */
+  .banner {
+    display: flex; gap: 12px; align-items: flex-start;
+    background: var(--brand-soft); border: 1px solid #b9dadd; color: #0a4c53;
+    padding: 12px 16px; border-radius: var(--radius); margin-bottom: 20px;
+  }
+  .doc { padding: 36px 44px; max-width: 860px; }
+  .doc-title { font-size: 22px; font-weight: 600; margin: 0 0 2px; }
+  .doc h3 { font-size: 16px; margin: 26px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--line-soft); }
+  .doc ul { margin: 0; padding-left: 20px; }
+  .doc li { margin-bottom: 6px; }
+  .sugg { border-left: 3px solid var(--ok); background: #f3faf5; padding: 10px 12px; margin: 8px 0 8px -12px; border-radius: 0 var(--radius) var(--radius) 0; }
+  .sugg.is-replace { border-left-color: #d98a00; background: #fffaf0; }
+  .sugg.is-rejected { border-left-color: var(--line); background: #f6f7f8; color: var(--ink-faint); }
+  .sugg.is-rejected .sugg-text { text-decoration: line-through; }
+  .sugg-label { font-size: 12.5px; font-weight: 600; color: var(--ok); margin-bottom: 4px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .sugg.is-replace .sugg-label { color: var(--watch); }
+  .sugg.is-rejected .sugg-label { color: var(--ink-faint); }
+  .sugg del { color: var(--crit); }
+  .sugg ins { text-decoration: none; background: #d7f0de; padding: 0 2px; }
+  .sugg-actions { display: flex; gap: 8px; margin-top: 8px; }
+  .sugg-actions .btn { padding: 4px 10px; font-size: 13px; }
+  .sugg-src { font-weight: 400; color: var(--ink-soft); }
+  .applybar {
+    position: sticky; bottom: 0; margin-top: 18px; max-width: 860px;
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 12px 16px; box-shadow: 0 -4px 16px rgba(28,43,58,.06);
+  }
+  .ms-list { list-style: none; padding: 0 !important; }
+  .ms-list li { display: flex; gap: 12px; }
+  .ms-date { min-width: 92px; color: var(--ink-soft); }
+
+  /* Fiche projet */
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
+  .tab { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 5px 14px; font-size: 14px; }
+  .tab[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .fiche-head { display: flex; flex-wrap: wrap; gap: 16px 40px; align-items: flex-start; padding: 22px 24px; margin-bottom: 16px; }
+  .fiche-head h1 { margin-bottom: 4px; }
+  .facts { display: grid; grid-template-columns: repeat(3, auto); gap: 4px 28px; font-size: 14px; margin-left: auto; }
+  .facts dt { color: var(--ink-faint); font-size: 13px; }
+  .facts dd { margin: 0; font-weight: 600; }
+  .weather { display: inline-flex; align-items: center; gap: 6px; }
+  .weather i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .col { padding: 18px 20px; }
+  .timeline { list-style: none; margin: 0; padding: 0; }
+  .timeline li { padding: 8px 0; border-top: 1px solid var(--line-soft); font-size: 14px; }
+  .timeline li:first-child { border-top: 0; padding-top: 0; }
+  .timeline time { display: block; font-size: 12.5px; color: var(--ink-faint); }
+  .ms-status { font-size: 12.5px; font-weight: 600; }
+  .ms-risk { color: var(--crit); }
+  .ms-replan { color: var(--watch); }
+  .ms-ok { color: var(--ok); }
+  .ms-plan { color: var(--ink-faint); }
+  .deps-list { margin-top: 16px; padding: 18px 20px; }
+  .deps-list ul { margin: 0; padding-left: 18px; font-size: 14px; }
+  .deps-list li { margin-bottom: 4px; }
+
+  /* Matrice */
+  .matrix-wrap { overflow-x: auto; padding: 18px; }
+  .matrix { border-collapse: separate; border-spacing: 4px; font-size: 13px; }
+  .matrix th { font-weight: 600; text-align: left; padding: 6px 8px; vertical-align: bottom; }
+  .matrix thead th { max-width: 120px; color: var(--ink-soft); }
+  .matrix tbody th { white-space: nowrap; }
+  .matrix td { width: 128px; height: 58px; padding: 0; }
+  .cell {
+    width: 100%; height: 100%; border: 1px solid var(--line-soft); background: #fafbfc;
+    border-radius: 4px; text-align: left; padding: 6px 8px; font-size: 12.5px; line-height: 1.3;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .cell.has-dep { background: var(--brand-soft); border-color: #b9dadd; color: #0a4c53; }
+  .cell.has-dep:hover { border-color: var(--brand); }
+  .cell.is-self { background: repeating-linear-gradient(45deg, #f0f2f4 0 6px, #e8ebee 6px 12px); border-color: transparent; cursor: default; }
+  .cell.is-empty { cursor: default; }
+  .cell[aria-pressed="true"] { outline: 2px solid var(--brand); outline-offset: 1px; }
+  .cell-dot { align-self: flex-end; font-size: 11.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+  .cell-dot::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 13px; color: var(--ink-soft); margin: 12px 0 0; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 14px; height: 14px; border-radius: 3px; display: inline-block; border: 1px solid var(--line); }
+  .dep-detail { margin-top: 16px; padding: 18px 20px; }
+
+  /* Toast */
+  .toast {
+    position: fixed; left: 50%; bottom: 84px; transform: translate(-50%, 20px);
+    background: var(--ink); color: #fff; padding: 10px 18px; border-radius: var(--radius);
+    font-size: 14px; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    .rail { flex-direction: row; flex-wrap: wrap; padding: 10px 12px; gap: 4px; }
+    .brand { padding: 0 8px 0 0; width: 100%; }
+    .nav-btn { width: auto; }
+    .rail-foot { display: none; }
+    .topbar, .view { padding-left: 16px; padding-right: 16px; }
+    .topbar-note { margin-left: 0; }
+    .cols { grid-template-columns: 1fr; }
+    .facts { margin-left: 0; grid-template-columns: repeat(2, auto); }
+    .finding { grid-template-columns: 6px 1fr; }
+    .finding-side { grid-column: 2; flex-direction: row; align-items: center; padding: 0 16px 14px 0; }
+    .doc { padding: 24px 20px; }
+    .why li { grid-template-columns: 1fr; gap: 2px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .drawer, .scrim, .toast { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <nav class="rail" aria-label="Navigation principale">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M8.7 10.7l6.6-3.4M8.7 13.3l6.6 3.4"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">Assistant d'impact</div>
+        <div class="brand-sub">Portefeuille projets</div>
+      </div>
+    </div>
+    <button class="nav-btn" data-view="scan">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+      Scan de la semaine
+    </button>
+    <button class="nav-btn" data-view="report">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/></svg>
+      Rapport hebdo
+    </button>
+    <button class="nav-btn" data-view="fiche">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h6"/></svg>
+      Fiches projets
+    </button>
+    <button class="nav-btn" data-view="matrix">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Matrice des dépendances
+    </button>
+    <div class="rail-foot">Maquette de démonstration. Données fictives.</div>
+  </nav>
+
+  <div class="main">
+    <header class="topbar">
+      <label class="field">Mon projet
+        <select id="projectSel"></select>
+      </label>
+      <label class="field" id="periodField">Période
+        <select id="periodSel">
+          <option value="week">Cette semaine (19–23 oct.)</option>
+          <option value="two">Les 2 dernières semaines (12–23 oct.)</option>
+        </select>
+      </label>
+      <div class="topbar-note">52 documents approuvés analysés dans 6 projets. Mis à jour le vendredi 23 octobre 2026 à 8 h 00.</div>
+    </header>
+    <main class="view" id="view"></main>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" aria-hidden="true"></aside>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ---------- Données fictives ---------- */
+const PROJECTS = {
+  ESP:  { name: "Refonte Espace Client", pm: "Claire Morel", sponsor: "Direction Relation Client", phase: "Réalisation, lot 2 sur 3", weather: ["#d98a00", "Sous tension"] },
+  SIN:  { name: "Migration Guichet Sinistres", pm: "Julien Faure", sponsor: "Direction Indemnisation", phase: "Réalisation", weather: ["#b42318", "En difficulté"] },
+  DORA: { name: "Conformité DORA", pm: "Nadia Benali", sponsor: "Direction des Risques", phase: "Réalisation", weather: ["#1f7a3f", "Dans les temps"] },
+  AUTO: { name: "Offre Auto Connectée", pm: "Thomas Leroy", sponsor: "Direction Marché Particuliers", phase: "Conception", weather: ["#1f7a3f", "Dans les temps"] },
+  S2:   { name: "Reporting Solvabilité II", pm: "Sophie Garnier", sponsor: "Direction Financière", phase: "Recette", weather: ["#d98a00", "Sous tension"] },
+  GED:  { name: "Dématérialisation des courriers", pm: "Karim Haddad", sponsor: "Direction des Opérations", phase: "Réalisation", weather: ["#1f7a3f", "Dans les temps"] },
+};
+const ORDER = ["ESP", "SIN", "DORA", "AUTO", "S2", "GED"];
+
+// from dépend de to
+const DEPS = [
+  { from: "ESP", to: "SIN", label: "API Déclaration", desc: "La déclaration de sinistre en ligne de l'espace client appelle l'API Déclaration v2 du Guichet Sinistres." },
+  { from: "ESP", to: "DORA", label: "Exigences d'authentification", desc: "Le parcours de connexion de l'espace client doit respecter les exigences d'authentification forte définies par le projet DORA." },
+  { from: "ESP", to: "GED", label: "Affichage des courriers", desc: "L'espace client affiche les courriers produits et archivés par la GED." },
+  { from: "SIN", to: "GED", label: "Pièces justificatives", desc: "Le Guichet Sinistres reçoit les pièces justificatives numérisées par le prestataire de la GED." },
+  { from: "SIN", to: "DORA", label: "Tests de résilience", desc: "Le Guichet Sinistres, fonction critique, doit passer les tests de résilience pilotés par DORA." },
+  { from: "SIN", to: "ESP", label: "Statut de dossier", desc: "L'espace client demande au Guichet Sinistres d'émettre un événement à chaque changement de statut de dossier." },
+  { from: "DORA", to: "GED", label: "Registre des prestataires", desc: "Le projet DORA doit inscrire au registre chaque prestataire TIC, dont le prestataire de numérisation de la GED." },
+  { from: "DORA", to: "SIN", label: "Plan de réversibilité", desc: "L'hébergement cloud du Guichet Sinistres entre dans la stratégie de sortie DORA." },
+  { from: "AUTO", to: "ESP", label: "Module de souscription", desc: "L'Offre Auto Connectée réutilise le module de souscription développé par l'espace client." },
+  { from: "AUTO", to: "SIN", label: "Déclaration télématique", desc: "Le boîtier télématique déclare automatiquement les accidents via l'API Déclaration v2." },
+  { from: "AUTO", to: "S2", label: "Gel des référentiels", desc: "La garantie Auto Connectée doit être créée au référentiel avant le gel de clôture Solvabilité II." },
+  { from: "S2", to: "SIN", label: "Données de provisions", desc: "Les états Solvabilité II consomment le flux mensuel de provisions sinistres." },
+  { from: "S2", to: "AUTO", label: "Nouvelle ligne produit", desc: "Toute nouvelle offre doit être modélisée dans les états réglementaires." },
+  { from: "GED", to: "ESP", label: "Dépôt de documents", desc: "Les justificatifs déposés par les assurés dans l'espace client sont transmis à la GED." },
+  { from: "GED", to: "DORA", label: "Inscription au registre", desc: "La signature du contrat prestataire de la GED est conditionnée à son inscription au registre DORA." },
+];
+
+const SIN_EXCERPT = "Suite aux anomalies de performance relevées en recette, le comité valide le report de la mise en production de l'API Déclaration v2 au 7 décembre. [[L'ancienne API reste seule disponible jusqu'à cette date.]] La reprise des données historiques de provisions est décalée en conséquence.";
+
+const FINDINGS = [
+  // Refonte Espace Client
+  { id: "f1", target: "ESP", source: "SIN", sev: "crit", date: "2026-10-20",
+    title: "L'API Déclaration v2 est reportée du 9 novembre au 7 décembre",
+    impact: "Votre jalon « Déclaration de sinistre en ligne » du 18 novembre repose sur cette API : il ne peut pas être tenu en l'état.",
+    why: [["Planning", "Le jalon du 18/11 est bloqué. Décalage minimum de 3 semaines, à la veille de la MEP du lot 2."],
+          ["Périmètre", "Une option existe : lancer sur l'ancienne API, sans suivi du dossier en temps réel."],
+          ["Coordination", "Un arbitrage est nécessaire avant votre SteerCo du 4 novembre."]],
+    doc: "Compte rendu SteerCo Guichet Sinistres", docDate: "2026-10-20", keyword: "API Déclaration",
+    excerpt: SIN_EXCERPT,
+    action: "Organiser un arbitrage avec le PM Sinistres avant le 30/10 : décaler le jalon ou lancer une première version sur l'ancienne API.",
+    owner: "Métier (Direction Indemnisation)",
+    planning: { ms: 0, newText: "À confirmer après arbitrage (au plus tôt le 7/12)" } },
+  { id: "f2", target: "ESP", source: "DORA", sev: "watch", date: "2026-10-21",
+    title: "L'authentification forte devient obligatoire à chaque connexion sur les portails clients",
+    impact: "Votre parcours de connexion actuel, qui ne demande le MFA qu'au premier accès, devient non conforme.",
+    why: [["Périmètre", "La user story « Connexion » du lot 3 est à reprendre."],
+          ["Planning", "Échéance réglementaire au 31/03/2027 : compatible avec le lot 3 si le sujet est chiffré maintenant."]],
+    doc: "Note d'architecture DORA, Authentification v2", docDate: "2026-10-21", keyword: "portail client",
+    excerpt: "Afin de répondre aux exigences de résilience opérationnelle, [[tout portail exposé aux assurés devra imposer une authentification forte (MFA) à chaque connexion]], sans exception pour les appareils reconnus. Échéance : 31 mars 2027.",
+    action: "Faire valider le nouveau parcours de connexion par la Sécurité et chiffrer son ajout au lot 3.",
+    owner: "Sécurité (RSSI)" },
+  { id: "f3", target: "ESP", source: "AUTO", sev: "watch", date: "2026-10-15",
+    title: "L'Offre Auto Connectée va réutiliser votre module de souscription",
+    impact: "Une nouvelle équipe va dépendre de votre module : chaque évolution devra être coordonnée, et une demande d'écran supplémentaire va arriver.",
+    why: [["Coordination", "Il n'existe aujourd'hui aucun accord sur qui maintient le module partagé."],
+          ["Périmètre", "Un écran de consentement télématique est demandé dans votre module."]],
+    doc: "Dossier de conception Offre Auto Connectée", docDate: "2026-10-15", keyword: "module de souscription",
+    excerpt: "Pour tenir le délai de lancement, [[le parcours de souscription réutilisera le module développé par le projet Refonte Espace Client]], avec l'ajout d'un écran de consentement télématique.",
+    action: "Planifier un point d'architecture commun pour décider qui maintient le module.",
+    owner: "Architecture" },
+  { id: "f4", target: "ESP", source: "GED", sev: "info", date: "2026-10-22",
+    title: "Les courriers passent au format PDF/A-3 le 1er décembre",
+    impact: "Votre visionneuse de documents gère déjà le PDF/A : a priori aucun changement, à confirmer en recette.",
+    why: [["Périmètre", "Pas d'évolution attendue, un cas de test suffit."]],
+    doc: "Compte rendu comité projet GED", docDate: "2026-10-22", keyword: "espace client",
+    excerpt: "[[Tous les courriers générés passeront au format PDF/A-3 à compter du 1er décembre]] ; les applications consommatrices, dont l'espace client, ont été informées.",
+    action: "Ajouter un cas de test PDF/A-3 à la recette du lot 2.",
+    owner: "Équipe recette" },
+  { id: "f5", target: "ESP", source: "S2", sev: "info", date: "2026-10-13",
+    title: "Les référentiels produits seront gelés du 1er au 15 janvier",
+    impact: "Aucune nouvelle garantie ne pourra être mise en production dans l'espace client sur cette période.",
+    why: [["Planning", "Vérifier qu'aucune MEP du lot 3 ne tombe pendant le gel."]],
+    doc: "Planning de clôture Solvabilité II 2026", docDate: "2026-10-13", keyword: "référentiel produits",
+    excerpt: "[[Gel des référentiels produits et garanties du 1er au 15 janvier]] pour la production des états annuels. Aucune modification ne sera acceptée sur cette période.",
+    action: "Vérifier le calendrier des MEP du lot 3.",
+    owner: "PMO" },
+
+  // Migration Guichet Sinistres
+  { id: "f6", target: "SIN", source: "GED", sev: "crit", date: "2026-10-21",
+    title: "Le flux de pièces justificatives sera coupé 72 heures début janvier",
+    impact: "Les déclarations avec pièces jointes ne pourront pas être instruites pendant 3 jours, en pleine période d'intempéries hivernales.",
+    why: [["Coordination", "Aucun mode dégradé n'est prévu entre la GED et l'Indemnisation."],
+          ["Planning", "La bascule de la GED tombe la même semaine que votre reprise de l'historique."]],
+    doc: "Compte rendu SteerCo GED", docDate: "2026-10-21", keyword: "pièces justificatives",
+    excerpt: "Le nouveau prestataire de numérisation reprendra l'activité le 5 janvier. [[Une interruption du flux de numérisation de 72 heures est à prévoir lors de la bascule]], y compris pour les pièces justificatives des sinistres.",
+    action: "Définir un mode dégradé (dépôt manuel des pièces) avec la GED et le service Indemnisation.",
+    owner: "Métier (Direction Indemnisation)" },
+  { id: "f7", target: "SIN", source: "DORA", sev: "watch", date: "2026-10-19",
+    title: "Le Guichet Sinistres est classé fonction critique au sens de DORA",
+    impact: "Un test de bascule doit figurer dans votre planning 2027, et la nouvelle architecture doit le permettre.",
+    why: [["Planning", "Test à réaliser avant le 30 juin 2027."],
+          ["Périmètre", "L'architecture cible v3 ne prévoit pas encore de site de secours."]],
+    doc: "Cartographie des fonctions critiques DORA, v1.2", docDate: "2026-10-19", keyword: "Guichet Sinistres",
+    excerpt: "[[Le Guichet Sinistres est classé fonction critique ou importante]] et devra faire l'objet d'un test de bascule avant le 30 juin 2027.",
+    action: "Inscrire le test de bascule dans la feuille de route 2027 et revoir la conception avec l'Architecture.",
+    owner: "Architecture" },
+  { id: "f8", target: "SIN", source: "ESP", sev: "info", date: "2026-10-14",
+    title: "L'espace client demande un statut de dossier en temps réel",
+    impact: "Il faudra émettre un événement à chaque changement de statut, ce qui n'est pas prévu dans votre périmètre actuel.",
+    why: [["Périmètre", "Nouvelle demande, à évaluer avant le lot 3 de l'espace client."]],
+    doc: "Backlog priorisé Espace Client, lot 3", docDate: "2026-10-14", keyword: "Guichet Sinistres",
+    excerpt: "[[Afficher à l'assuré l'état d'avancement de son dossier sinistre en temps réel]] (nécessite un événement émis par le Guichet Sinistres).",
+    action: "Évaluer la charge et répondre au PM Espace Client.",
+    owner: "Équipe technique" },
+
+  // Conformité DORA
+  { id: "f9", target: "DORA", source: "GED", sev: "watch", date: "2026-10-20",
+    title: "Un nouveau prestataire de numérisation sera signé le 6 novembre",
+    impact: "Ce prestataire doit être inscrit au registre DORA, avec son analyse de risques, avant la signature.",
+    why: [["Planning", "Il reste 2 semaines pour mener l'analyse de risques."],
+          ["Coordination", "La GED n'a pas encore transmis le dossier prestataire."]],
+    doc: "Compte rendu SteerCo GED", docDate: "2026-10-21", keyword: "prestataire",
+    excerpt: "Le choix du nouveau prestataire de numérisation est confirmé. [[Le contrat sera signé le 6 novembre]], pour une reprise de l'activité début janvier.",
+    action: "Demander le dossier prestataire au PM GED et lancer l'analyse de risques avant le 6/11.",
+    owner: "Achats et Risques" },
+  { id: "f10", target: "DORA", source: "SIN", sev: "info", date: "2026-10-16",
+    title: "Le Guichet Sinistres sera hébergé dans le cloud public",
+    impact: "L'hébergement cloud d'une fonction critique entre dans votre stratégie de sortie.",
+    why: [["Périmètre", "Le plan de réversibilité doit intégrer ce nouvel hébergement."]],
+    doc: "Dossier d'architecture Guichet Sinistres, v3", docDate: "2026-10-16", keyword: "cloud",
+    excerpt: "[[Hébergement cible : cloud public, région France]], avec bascule progressive des environnements à partir de décembre.",
+    action: "Ajouter le Guichet Sinistres au plan de réversibilité.",
+    owner: "Risques" },
+
+  // Offre Auto Connectée
+  { id: "f11", target: "AUTO", source: "ESP", sev: "crit", date: "2026-10-22",
+    title: "Le module de souscription sera refondu, et sa version actuelle gelée",
+    impact: "Votre lancement de janvier repose sur la version actuelle, qui n'évoluera plus : l'écran de consentement télématique ne pourra pas y être ajouté.",
+    why: [["Périmètre", "L'écran de consentement est obligatoire pour collecter les données de conduite."],
+          ["Planning", "La nouvelle version n'est attendue qu'en mars 2027."]],
+    doc: "Compte rendu comité projet Espace Client", docDate: "2026-10-22", keyword: "module de souscription",
+    excerpt: "[[Le module de souscription sera entièrement refondu au lot 3, livraison prévue en mars 2027.]] La version actuelle ne recevra plus d'évolution fonctionnelle.",
+    action: "Arbitrer avec le sponsor : lancer en janvier avec un consentement recueilli par mail, ou décaler à mars.",
+    owner: "Sponsor métier" },
+  { id: "f12", target: "AUTO", source: "SIN", sev: "watch", date: "2026-10-20",
+    title: "L'API Déclaration v2 est reportée au 7 décembre",
+    impact: "La déclaration automatique d'accident par le boîtier utilise cette API : vos tests d'intégration du 25 novembre sont décalés.",
+    why: [["Planning", "Tests d'intégration à replanifier après le 7/12, à 5 semaines du lancement."]],
+    doc: "Compte rendu SteerCo Guichet Sinistres", docDate: "2026-10-20", keyword: "API Déclaration",
+    excerpt: SIN_EXCERPT,
+    action: "Replanifier les tests d'intégration après le 7/12.",
+    owner: "Équipe technique",
+    planning: { ms: 0, newText: "Après le 7/12 (date à fixer)" } },
+  { id: "f13", target: "AUTO", source: "S2", sev: "info", date: "2026-10-13",
+    title: "Les référentiels produits seront gelés du 1er au 15 janvier",
+    impact: "Votre nouvelle garantie doit être créée au référentiel avant le 31 décembre.",
+    why: [["Planning", "Contrainte compatible avec votre jalon actuel."]],
+    doc: "Planning de clôture Solvabilité II 2026", docDate: "2026-10-13", keyword: "garanties",
+    excerpt: "[[Gel des référentiels produits et garanties du 1er au 15 janvier]] pour la production des états annuels.",
+    action: "Confirmer la date de création de la garantie avec l'Actuariat.",
+    owner: "Actuariat" },
+
+  // Reporting Solvabilité II
+  { id: "f14", target: "S2", source: "SIN", sev: "watch", date: "2026-10-20",
+    title: "La reprise de l'historique des provisions sinistres est décalée",
+    impact: "Les états annuels seront produits avec l'ancien flux de provisions : un double contrôle sera nécessaire.",
+    why: [["Coordination", "L'Actuariat doit valider la cohérence entre l'ancien et le nouveau flux."],
+          ["Planning", "Le contrôle doit être fait avant la remise des états du 8 avril."]],
+    doc: "Compte rendu SteerCo Guichet Sinistres", docDate: "2026-10-20", keyword: "provisions",
+    excerpt: "Suite aux anomalies de performance relevées en recette, le comité valide le report de la mise en production de l'API Déclaration v2 au 7 décembre. L'ancienne API reste seule disponible jusqu'à cette date. [[La reprise des données historiques de provisions est décalée en conséquence.]]",
+    action: "Prévoir un contrôle de cohérence ancien/nouveau flux avec l'Actuariat.",
+    owner: "Actuariat" },
+  { id: "f15", target: "S2", source: "AUTO", sev: "info", date: "2026-10-15",
+    title: "Une nouvelle offre Auto sera lancée le 15 janvier",
+    impact: "Une nouvelle ligne produit sera à modéliser pour les états du premier trimestre 2027.",
+    why: [["Périmètre", "Pas d'impact sur la clôture 2026."]],
+    doc: "Dossier de conception Offre Auto Connectée", docDate: "2026-10-15", keyword: "nouvelle offre",
+    excerpt: "[[Lancement commercial prévu le 15 janvier 2027]], sur l'ensemble du réseau d'agences.",
+    action: "Informer l'Actuariat du calendrier.",
+    owner: "Actuariat" },
+
+  // GED
+  { id: "f16", target: "GED", source: "ESP", sev: "watch", date: "2026-10-21",
+    title: "Les assurés pourront déposer leurs justificatifs dans l'espace client dès décembre",
+    impact: "Le volume de documents entrants devrait augmenter d'environ 30 % : la capacité du nouveau prestataire est à vérifier.",
+    why: [["Périmètre", "Le contrat prestataire est dimensionné sur les volumes actuels."],
+          ["Planning", "À intégrer avant la signature du 6 novembre."]],
+    doc: "Note de cadrage Espace Client, lot 2", docDate: "2026-10-21", keyword: "GED",
+    excerpt: "[[Dès le lot 2 (décembre), l'assuré pourra déposer ses justificatifs depuis l'espace client]] ; les documents seront transmis à la GED pour indexation.",
+    action: "Partager l'estimation de volume avec le prestataire avant la signature.",
+    owner: "Achats" },
+  { id: "f17", target: "GED", source: "DORA", sev: "watch", date: "2026-10-19",
+    title: "Tout prestataire doit être inscrit au registre DORA avant la signature",
+    impact: "Votre signature du 6 novembre doit être précédée de l'inscription du prestataire au registre.",
+    why: [["Planning", "Sans inscription, la signature devra être repoussée."]],
+    doc: "Procédure registre des prestataires TIC", docDate: "2026-10-19", keyword: "prestataire",
+    excerpt: "[[Chaque prestataire de services TIC doit être inscrit au registre avant toute signature de contrat]], accompagné de son analyse de risques.",
+    action: "Transmettre le dossier prestataire à l'équipe Risques.",
+    owner: "Risques" },
+];
+
+const FICHES = {
+  ESP: {
+    updates: [["2026-10-22", "Recette du lot 2 démarrée : 140 cas de test passés sur 180."],
+              ["2026-10-20", "Report de l'API Déclaration v2 signalé par le projet Sinistres."],
+              ["2026-10-16", "Maquettes du parcours de connexion validées par le métier."]],
+    done: ["Attestation d'assurance téléchargeable mise en production le 6/10", "Adoption de l'espace client à 41 %, en hausse de 3 points", "Arrivée d'un second développeur front"],
+    milestones: [["2026-11-18", "Déclaration de sinistre en ligne", "risk"], ["2026-11-04", "SteerCo Espace Client", "plan"], ["2026-12-02", "Mise en production du lot 2", "ok"]],
+    risks: ["Charge de recette élevée sur novembre."],
+    actions: ["Finaliser les cas de test du lot 2 (Équipe recette, 30/10)."] },
+  SIN: {
+    updates: [["2026-10-20", "SteerCo : report de l'API Déclaration v2 au 7/12 validé."],
+              ["2026-10-17", "70 % des anomalies de performance corrigées."],
+              ["2026-10-14", "Demande de statut temps réel reçue de l'espace client."]],
+    done: ["85 % des dossiers ouverts migrés", "120 gestionnaires formés au nouvel outil", "Architecture cible v3 validée"],
+    milestones: [["2026-12-07", "Mise en production de l'API Déclaration v2", "replan"], ["2027-01-15", "Reprise de l'historique des provisions", "replan"], ["2027-06-30", "Test de bascule DORA", "plan"]],
+    risks: ["Performance de l'API en charge encore insuffisante."],
+    actions: ["Campagne de tests de charge (Équipe technique, 06/11)."] },
+  DORA: {
+    updates: [["2026-10-21", "Note d'architecture Authentification v2 approuvée."],
+              ["2026-10-19", "Cartographie des fonctions critiques v1.2 publiée."],
+              ["2026-10-15", "Registre des prestataires : 64 inscrits sur 71."]],
+    done: ["Cartographie des fonctions critiques publiée", "Politique de gestion des incidents validée", "Registre des prestataires complété à 90 %"],
+    milestones: [["2026-11-06", "Registre des prestataires complet", "ok"], ["2026-12-15", "Premier test de résilience", "plan"], ["2027-01-29", "Revue par l'ACPR", "plan"]],
+    risks: ["Disponibilité des équipes métier pour les tests de résilience."],
+    actions: ["Relancer les 7 prestataires non inscrits (Achats, 31/10)."] },
+  AUTO: {
+    updates: [["2026-10-22", "Refonte du module de souscription annoncée par l'espace client."],
+              ["2026-10-15", "Dossier de conception approuvé."],
+              ["2026-10-13", "Contrat signé avec le fournisseur de boîtiers télématiques."]],
+    done: ["Dossier de conception approuvé", "Fournisseur de boîtiers choisi", "Tarif validé par l'Actuariat"],
+    milestones: [["2026-11-25", "Tests d'intégration avec l'API Sinistres", "risk"], ["2026-12-31", "Création de la garantie au référentiel", "plan"], ["2027-01-15", "Lancement commercial", "risk"]],
+    risks: ["Délais de livraison des boîtiers."],
+    actions: ["Valider le kit de communication réseau (Marketing, 14/11)."] },
+  S2: {
+    updates: [["2026-10-20", "Report de la reprise des provisions annoncé par Sinistres."],
+              ["2026-10-13", "Planning de clôture 2026 publié."],
+              ["2026-10-09", "Recette des états trimestriels terminée."]],
+    done: ["États du T3 remis dans les délais", "3 contrôles de cohérence automatisés", "Planning de clôture publié"],
+    milestones: [["2027-01-01", "Début du gel des référentiels", "plan"], ["2027-01-15", "Fin du gel des référentiels", "plan"], ["2027-04-08", "Remise des états annuels", "plan"]],
+    risks: ["Qualité des données de réassurance."],
+    actions: ["Revue des hypothèses actuarielles (Actuariat, 20/11)."] },
+  GED: {
+    updates: [["2026-10-22", "Format PDF/A-3 généralisé au 1er décembre."],
+              ["2026-10-21", "Bascule vers le nouveau prestataire : interruption de 72 h prévue."],
+              ["2026-10-16", "Nouveau prestataire de numérisation choisi."]],
+    done: ["Nouveau prestataire choisi", "1,2 million de courriers numérisés ce mois-ci", "Délai de numérisation ramené à 24 h"],
+    milestones: [["2026-11-06", "Signature du contrat prestataire", "risk"], ["2026-12-01", "Généralisation du PDF/A-3", "plan"], ["2027-01-05", "Bascule vers le nouveau prestataire", "plan"]],
+    risks: ["Reprise des archives antérieures à 2015."],
+    actions: ["Finaliser le cahier de recette de la bascule (Équipe GED, 15/11)."] },
+};
+
+/* ---------- État ---------- */
+const state = {
+  view: "scan", project: "ESP", period: "week", showInfo: false,
+  decisions: {},        // findingId -> "accepted" | "ignored"
+  sugg: {},             // suggestionId -> "ok" | "no"
+  applied: {},          // project -> nombre de modifications appliquées
+  fiche: null, cell: null, drawer: null,
+};
+
+/* ---------- Utilitaires ---------- */
+const MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+const fmt = d => { const [y, m, j] = d.split("-").map(Number); return `${j} ${MONTHS[m - 1]}${y !== 2026 ? " " + y : ""}`; };
+const short = d => { const [, m, j] = d.split("-"); return `${j}/${m}`; };
+const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const marked = s => esc(s).replace(/\[\[(.+?)\]\]/g, "<mark>$1</mark>");
+const SEV = { crit: ["sev-crit", "Critique"], watch: ["sev-watch", "À surveiller"], info: ["sev-info", "Info"] };
+const sevTag = s => `<span class="sev ${SEV[s][0]}">${SEV[s][1]}</span>`;
+const RANK = { crit: 0, watch: 1, info: 2 };
+const plural = (n, one, many) => `${n} ${n > 1 ? many : one}`;
+const pname = c => PROJECTS[c].name;
+
+function findingsFor(project, period) {
+  const from = period === "week" ? "2026-10-19" : "2026-10-12";
+  return FINDINGS.filter(f => f.target === project && f.date >= from)
+    .sort((a, b) => RANK[a.sev] - RANK[b.sev] || b.date.localeCompare(a.date));
+}
+
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+/* ---------- Écran 1 : scan ---------- */
+function renderScan() {
+  const all = findingsFor(state.project, state.period);
+  const material = all.filter(f => f.sev !== "info");
+  const infos = all.filter(f => f.sev === "info");
+  const nCrit = all.filter(f => f.sev === "crit").length;
+  const nWatch = all.filter(f => f.sev === "watch").length;
+  const when = state.period === "week" ? "Cette semaine" : "Ces deux dernières semaines";
+
+  let headline;
+  if (!material.length) headline = `${when}, rien d'important pour ${pname(state.project)}.`;
+  else {
+    const parts = [];
+    if (nCrit) parts.push(plural(nCrit, "point critique", "points critiques"));
+    if (nWatch) parts.push(`${nWatch} à surveiller`);
+    headline = `${when}, ${parts.join(" et ")} pour ${pname(state.project)}.`;
+  }
+
+  const row = f => {
+    const d = state.decisions[f.id];
+    const status = d === "accepted" ? `<span class="pill pill-ok">Ajouté au plan d'actions</span>`
+                 : d === "ignored" ? `<span class="pill">Ignoré</span>` : "";
+    return `
+    <li class="finding ${d === "ignored" ? "is-ignored" : ""}" data-sev="${f.sev}">
+      <div class="finding-bar"></div>
+      <div class="finding-body">
+        <div class="finding-head">${sevTag(f.sev)} <span class="finding-title">${esc(f.title)}</span></div>
+        <p class="finding-impact">${esc(f.impact)}</p>
+        <div class="finding-meta">
+          <span>Projet source : <b>${pname(f.source)}</b></span>
+          <span>Preuve : ${esc(f.doc)}, ${fmt(f.docDate)}</span>
+          <span>À traiter par : <b>${esc(f.owner)}</b></span>
+        </div>
+      </div>
+      <div class="finding-side">
+        ${status}
+        <button class="btn" data-open="${f.id}">Voir le détail</button>
+      </div>
+    </li>`;
+  };
+
+  return `
+    <section class="brief">
+      <h1>${headline}</h1>
+      <p class="muted">Changements repérés dans les documents approuvés des autres projets, classés du plus urgent au moins urgent.</p>
+      <div class="brief-counts">
+        <span class="sev sev-crit">${plural(nCrit, "critique", "critiques")}</span>
+        <span class="sev sev-watch">${nWatch} à surveiller</span>
+        <span class="sev sev-info">${plural(infos.length, "info", "infos")}</span>
+      </div>
+    </section>
+    ${material.length ? `<ul class="finding-list">${material.map(row).join("")}</ul>`
+      : `<div class="panel empty"><p><b>Aucun changement important détecté.</b></p><p class="muted">Élargissez la période ou consultez la matrice des dépendances.</p></div>`}
+    ${infos.length ? `
+      <div class="more-info">
+        <button class="btn btn-quiet" id="toggleInfo" aria-expanded="${state.showInfo}">
+          ${state.showInfo ? "Masquer les informations mineures" : `Afficher ${plural(infos.length, "information mineure", "informations mineures")}`}
+        </button>
+        ${state.showInfo ? `<ul class="finding-list" style="margin-top:10px">${infos.map(row).join("")}</ul>` : ""}
+      </div>` : ""}
+  `;
+}
+
+/* ---------- Écran 2 : détail (panneau latéral) ---------- */
+function openDrawer(id) {
+  state.drawer = id;
+  const f = FINDINGS.find(x => x.id === id);
+  const d = state.decisions[f.id];
+  const drawer = document.getElementById("drawer");
+  drawer.innerHTML = `
+    <button class="drawer-close" id="drawerClose" aria-label="Fermer">×</button>
+    <div class="drawer-head">
+      ${sevTag(f.sev)}
+      <h2 id="drawerTitle">${esc(f.title)}</h2>
+      <div class="faint">Détecté le ${fmt(f.date)} dans le projet ${pname(f.source)}</div>
+    </div>
+    <div class="drawer-body">
+      <div class="section">
+        <h3>Pourquoi ça concerne ${pname(f.target)}</h3>
+        <p>${esc(f.impact)}</p>
+        <ul class="why">${f.why.map(([k, v]) => `<li><span class="why-dim">${k}</span><span>${esc(v)}</span></li>`).join("")}</ul>
+      </div>
+      <div class="section">
+        <h3>Preuve</h3>
+        <blockquote class="evidence">${marked(f.excerpt)}</blockquote>
+        <div class="evidence-src">
+          <span class="doc-ico">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l4 4v14H6z"/></svg>
+            ${esc(f.doc)}
+          </span>
+          <span>${fmt(f.docDate)}</span>
+          <span class="pill pill-ok">Document approuvé</span>
+          <span>Terme détecté : « ${esc(f.keyword)} »</span>
+        </div>
+      </div>
+      <div class="section">
+        <h3>Action recommandée</h3>
+        <div class="action-box">
+          <p>${esc(f.action)}</p>
+          <span class="faint">Type de responsable : ${esc(f.owner)}</span>
+        </div>
+        <div class="human-note">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex:none;margin-top:2px"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+          <span>L'assistant propose, vous décidez. Il ne contacte personne et ne modifie aucun document sans votre accord.</span>
+        </div>
+      </div>
+      <button class="btn btn-quiet" data-fiche="${f.source}">Voir la fiche du projet ${pname(f.source)}</button>
+    </div>
+    <div class="drawer-foot">
+      ${d === "accepted" ? `<span class="pill pill-ok">Ajouté au plan d'actions</span><button class="btn" data-undo="${f.id}">Annuler</button>`
+       : d === "ignored" ? `<span class="pill">Ignoré</span><button class="btn" data-undo="${f.id}">Annuler</button>`
+       : `<button class="btn btn-primary" data-accept="${f.id}">Ajouter au plan d'actions</button>
+          <button class="btn" data-ignore="${f.id}">Ignorer ce point</button>`}
+    </div>`;
+  document.body.classList.add("drawer-open");
+  drawer.setAttribute("aria-hidden", "false");
+  document.getElementById("drawerClose").focus();
+}
+function closeDrawer() {
+  state.drawer = null;
+  document.body.classList.remove("drawer-open");
+  document.getElementById("drawer").setAttribute("aria-hidden", "true");
+}
+
+/* ---------- Écran 3 : rapport hebdo ---------- */
+function suggestionsFor(project) {
+  const out = [];
+  findingsFor(project, "two").filter(f => f.sev !== "info" && state.decisions[f.id] !== "ignored").forEach(f => {
+    out.push({ id: f.id + "-r", kind: "risk", f, text: `${SEV[f.sev][1]} : ${f.title} (source : ${pname(f.source)}, ${fmt(f.docDate)}).` });
+    out.push({ id: f.id + "-a", kind: "action", f, text: `${f.action} Responsable : ${f.owner}.` });
+    if (f.planning) out.push({ id: f.id + "-p", kind: "planning", f, ms: f.planning.ms, text: f.planning.newText });
+  });
+  return out;
+}
+function suggStatus(s) {
+  if (state.sugg[s.id]) return state.sugg[s.id];
+  return state.decisions[s.f.id] === "accepted" ? "ok" : "pending";
+}
+
+function renderReport() {
+  const p = state.project, fiche = FICHES[p];
+  const sugg = suggestionsFor(p);
+  const done = state.applied[p] != null;
+
+  const block = s => {
+    const st = suggStatus(s);
+    if (done) return st === "ok" ? `<li>${esc(s.text)}</li>` : "";
+    return `
+      <div class="sugg ${s.kind === "planning" ? "is-replace" : ""} ${st === "no" ? "is-rejected" : ""}">
+        <div class="sugg-label">
+          ${s.kind === "planning" ? "Modification proposée" : "Ajout proposé"}
+          <span class="sugg-src">d'après « ${esc(s.f.doc)} », ${fmt(s.f.docDate)}</span>
+          ${st === "ok" ? `<span class="pill pill-ok">Acceptée</span>` : st === "no" ? `<span class="pill">Rejetée</span>` : ""}
+        </div>
+        <div class="sugg-text">${s.kind === "planning" ? "" : esc(s.text)}${s.kind === "planning" ? planningDiff(s) : ""}</div>
+        <div class="sugg-actions">
+          ${st === "pending" ? `<button class="btn" data-sugg="${s.id}" data-val="ok">Accepter</button><button class="btn" data-sugg="${s.id}" data-val="no">Rejeter</button>`
+            : `<button class="btn" data-sugg="${s.id}" data-val="pending">Annuler</button>`}
+        </div>
+      </div>`;
+  };
+  const planningDiff = s => {
+    const [date, label] = fiche.milestones[s.ms];
+    return `${esc(label)} : <del>${short(date)}</del> <ins>${esc(s.text)}</ins>`;
+  };
+
+  const risks = sugg.filter(s => s.kind === "risk"), actions = sugg.filter(s => s.kind === "action"), plans = sugg.filter(s => s.kind === "planning");
+  const nOk = sugg.filter(s => suggStatus(s) === "ok").length;
+  const nNo = sugg.filter(s => suggStatus(s) === "no").length;
+  const nPending = sugg.length - nOk - nNo;
+
+  const milestoneItem = (m, i) => {
+    const repl = plans.find(s => s.ms === i);
+    if (repl && !done) return `<li>${block(repl)}</li>`;
+    const changed = repl && done && suggStatus(repl) === "ok";
+    return `<li><span class="ms-date">${changed ? esc(repl.text) : fmt(m[0])}</span><span>${esc(m[1])}</span></li>`;
+  };
+
+  return `
+    ${done ? `<div class="banner" style="background:var(--ok-bg);border-color:#b7dfc3;color:#155d2f">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="flex:none"><path d="M5 12l5 5 9-10"/></svg>
+        <div><b>Rapport mis à jour avec ${plural(state.applied[p], "modification", "modifications")} que vous avez validées.</b><br>
+        <button class="btn btn-quiet" id="backToDraft">Revoir le brouillon</button></div></div>`
+    : `<div class="banner">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex:none;margin-top:2px"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+        <div><b>Brouillon proposé par l'assistant.</b> Le rapport officiel ne change qu'après votre validation. Les points que vous avez ajoutés au plan d'actions sont déjà acceptés.</div>
+      </div>`}
+    <article class="panel doc">
+      <p class="doc-title">Rapport hebdomadaire : ${pname(p)}</p>
+      <p class="faint">Semaine 43, du 19 au 23 octobre 2026. Chef de projet : ${PROJECTS[p].pm}.</p>
+
+      <h3>Avancement</h3>
+      <ul>${fiche.updates.map(u => `<li>${esc(u[1])}</li>`).join("")}</ul>
+
+      <h3>Risques et dépendances</h3>
+      <ul>${fiche.risks.map(r => `<li>${esc(r)}</li>`).join("")}${done ? risks.map(block).join("") : ""}</ul>
+      ${done ? "" : risks.map(block).join("")}
+
+      <h3>Plan d'actions</h3>
+      <ul>${fiche.actions.map(a => `<li>${esc(a)}</li>`).join("")}${done ? actions.map(block).join("") : ""}</ul>
+      ${done ? "" : actions.map(block).join("")}
+
+      <h3>Prochains jalons</h3>
+      <ul class="ms-list">${fiche.milestones.map((m, i) => [m, i]).sort((a, b) => a[0][0].localeCompare(b[0][0])).map(([m, i]) => milestoneItem(m, i)).join("")}</ul>
+    </article>
+    ${done || !sugg.length ? "" : `
+    <div class="applybar">
+      <span class="muted">${plural(nOk, "acceptée", "acceptées")}, ${plural(nNo, "rejetée", "rejetées")}, ${nPending} en attente</span>
+      <button class="btn btn-primary" id="applyBtn" ${nOk ? "" : "disabled"}>Mettre à jour le rapport (${plural(nOk, "modification", "modifications")})</button>
+    </div>`}
+    ${!sugg.length && !done ? `<p class="faint" style="margin-top:14px">Aucune modification proposée cette semaine pour ce projet.</p>` : ""}
+  `;
+}
+
+/* ---------- Écran 4 : fiche projet ---------- */
+function renderFiche() {
+  const c = state.fiche || state.project, P = PROJECTS[c], F = FICHES[c];
+  const MS = { risk: ["ms-risk", "À risque"], replan: ["ms-replan", "Replanifié"], ok: ["ms-ok", "Dans les temps"], plan: ["ms-plan", "Planifié"] };
+  const deps = DEPS.filter(d => d.from === c), usedBy = DEPS.filter(d => d.to === c);
+  return `
+    <div class="tabs" role="group" aria-label="Choisir un projet">
+      ${ORDER.map(k => `<button class="tab" data-fiche="${k}" aria-pressed="${k === c}">${pname(k)}</button>`).join("")}
+    </div>
+    <section class="panel fiche-head">
+      <div>
+        <h1>${P.name}</h1>
+        <span class="weather"><i style="background:${P.weather[0]}"></i>${P.weather[1]}</span>
+      </div>
+      <dl class="facts">
+        <div><dt>Chef de projet</dt><dd>${P.pm}</dd></div>
+        <div><dt>Sponsor</dt><dd>${P.sponsor}</dd></div>
+        <div><dt>Phase</dt><dd>${P.phase}</dd></div>
+      </dl>
+    </section>
+    <div class="cols">
+      <section class="panel col">
+        <h2>Dernières mises à jour</h2>
+        <ul class="timeline">${F.updates.map(([d, t]) => `<li><time>${fmt(d)}</time>${esc(t)}</li>`).join("")}</ul>
+      </section>
+      <section class="panel col">
+        <h2>Réalisations du mois</h2>
+        <ul class="timeline">${F.done.map(t => `<li>${esc(t)}</li>`).join("")}</ul>
+      </section>
+      <section class="panel col">
+        <h2>Prochains jalons</h2>
+        <ul class="timeline">${F.milestones.slice().sort((a, b) => a[0].localeCompare(b[0])).map(([d, t, s]) =>
+          `<li><time>${fmt(d)}</time>${esc(t)}<br><span class="ms-status ${MS[s][0]}">${MS[s][1]}</span></li>`).join("")}</ul>
+      </section>
+    </div>
+    <section class="panel deps-list">
+      <h2>Dépendances</h2>
+      <div class="cols" style="gap:24px">
+        <div><h3>Ce projet dépend de</h3><ul>${deps.map(d => `<li><b>${pname(d.to)}</b> : ${esc(d.label)}</li>`).join("") || "<li>Aucune</li>"}</ul></div>
+        <div><h3>Projets qui en dépendent</h3><ul>${usedBy.map(d => `<li><b>${pname(d.from)}</b> : ${esc(d.label)}</li>`).join("") || "<li>Aucun</li>"}</ul></div>
+      </div>
+    </section>
+  `;
+}
+
+/* ---------- Écran 5 : matrice ---------- */
+function renderMatrix() {
+  const active = (from, to) => {
+    const fs = findingsFor(from, state.period).filter(f => f.source === to);
+    return fs.length ? fs.reduce((a, f) => RANK[f.sev] < RANK[a] ? f.sev : a, "info") : null;
+  };
+  const cell = (r, c) => {
+    if (r === c) return `<td><div class="cell is-self" aria-hidden="true"></div></td>`;
+    const d = DEPS.find(x => x.from === r && x.to === c);
+    if (!d) return `<td><div class="cell is-empty"></div></td>`;
+    const a = active(r, c);
+    const key = r + ">" + c;
+    return `<td><button class="cell has-dep" data-cell="${key}" aria-pressed="${state.cell === key}" title="${pname(r)} dépend de ${pname(c)}">
+      ${esc(d.label)}${a ? `<span class="cell-dot" style="color:var(--${a === "watch" ? "watch" : a})">${SEV[a][1]}</span>` : ""}</button></td>`;
+  };
+  let detail = "";
+  if (state.cell) {
+    const [r, c] = state.cell.split(">");
+    const d = DEPS.find(x => x.from === r && x.to === c);
+    const fs = findingsFor(r, state.period).filter(f => f.source === c);
+    detail = `<section class="panel dep-detail">
+      <h2>${pname(r)} dépend de ${pname(c)}</h2>
+      <p>${esc(d.desc)}</p>
+      ${fs.length ? `<h3>Changements détectés sur la période</h3><ul class="finding-list">${fs.map(f =>
+        `<li style="margin-bottom:6px">${sevTag(f.sev)} ${esc(f.title)} <button class="btn btn-quiet" data-open="${f.id}">Voir le détail</button></li>`).join("")}</ul>`
+        : `<p class="faint">Aucun changement détecté sur cette dépendance pendant la période.</p>`}
+    </section>`;
+  }
+  return `
+    <h1>Matrice des dépendances</h1>
+    <p class="muted">Chaque ligne indique de quels projets dépend un projet, et sur quoi. Les dépendances marquées ont bougé pendant la période sélectionnée.</p>
+    <div class="panel matrix-wrap">
+      <table class="matrix">
+        <thead><tr><th>Le projet…<br><span class="faint">dépend de</span></th>${ORDER.map(c => `<th scope="col">${pname(c)}</th>`).join("")}</tr></thead>
+        <tbody>${ORDER.map(r => `<tr><th scope="row">${pname(r)}</th>${ORDER.map(c => cell(r, c)).join("")}</tr>`).join("")}</tbody>
+      </table>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--brand-soft);border-color:#b9dadd"></i>Dépendance connue</span>
+        <span><i class="sw" style="background:var(--crit)"></i>Changement critique</span>
+        <span><i class="sw" style="background:#d98a00"></i>Changement à surveiller</span>
+        <span><i class="sw" style="background:var(--info)"></i>Information</span>
+      </div>
+    </div>
+    ${detail}
+  `;
+}
+
+/* ---------- Rendu et événements ---------- */
+function render() {
+  const v = document.getElementById("view");
+  v.innerHTML = { scan: renderScan, report: renderReport, fiche: renderFiche, matrix: renderMatrix }[state.view]();
+  document.querySelectorAll(".nav-btn").forEach(b => b.toggleAttribute("aria-current", b.dataset.view === state.view));
+  document.querySelectorAll(".nav-btn[aria-current]").forEach(b => b.setAttribute("aria-current", "page"));
+  document.getElementById("periodField").style.visibility = (state.view === "scan" || state.view === "matrix") ? "visible" : "hidden";
+}
+
+function go(view) { state.view = view; closeDrawer(); render(); window.scrollTo(0, 0); }
+
+document.getElementById("projectSel").innerHTML = ORDER.map(k => `<option value="${k}">${pname(k)}</option>`).join("");
+document.getElementById("projectSel").addEventListener("change", e => { state.project = e.target.value; state.fiche = null; state.showInfo = false; render(); });
+document.getElementById("periodSel").addEventListener("change", e => { state.period = e.target.value; render(); });
+document.getElementById("scrim").addEventListener("click", closeDrawer);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && state.drawer) closeDrawer(); });
+
+document.addEventListener("click", e => {
+  const t = e.target.closest("button");
+  if (!t) return;
+  const ds = t.dataset;
+  if (ds.view) return go(ds.view);
+  if (ds.open) return openDrawer(ds.open);
+  if (t.id === "drawerClose") return closeDrawer();
+  if (t.id === "toggleInfo") { state.showInfo = !state.showInfo; return render(); }
+  if (ds.accept) { state.decisions[ds.accept] = "accepted"; toast("Ajouté au plan d'actions. Il apparaîtra dans votre brouillon de rapport."); render(); return openDrawer(ds.accept); }
+  if (ds.ignore) { state.decisions[ds.ignore] = "ignored"; toast("Point ignoré. Il ne sera pas proposé dans le rapport."); render(); return openDrawer(ds.ignore); }
+  if (ds.undo) { delete state.decisions[ds.undo]; render(); return openDrawer(ds.undo); }
+  if (ds.fiche) { state.fiche = ds.fiche; state.view = "fiche"; closeDrawer(); render(); return; }
+  if (ds.sugg) { if (ds.val === "pending") state.sugg[ds.sugg] = "pending"; else state.sugg[ds.sugg] = ds.val; return render(); }
+  if (t.id === "applyBtn") {
+    const n = suggestionsFor(state.project).filter(s => suggStatus(s) === "ok").length;
+    state.applied[state.project] = n;
+    toast(`Rapport mis à jour : ${plural(n, "modification appliquée", "modifications appliquées")}.`);
+    render(); window.scrollTo(0, 0); return;
+  }
+  if (t.id === "backToDraft") { delete state.applied[state.project]; return render(); }
+  if (ds.cell) { state.cell = state.cell === ds.cell ? null : ds.cell; return render(); }
+});
+
+render();
+</script>
+</body>
+</html>
