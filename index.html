@@ -258,7 +258,83 @@
   }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
+  [hidden] { display: none !important; }
+
+  /* Chatbot */
+  .chat-launch {
+    position: fixed; right: 24px; bottom: 24px; z-index: 30;
+    display: flex; align-items: center; gap: 8px;
+    background: var(--brand); color: #fff; border: 0; border-radius: 999px;
+    padding: 12px 18px; font-weight: 600; box-shadow: 0 6px 20px rgba(11,93,102,.35);
+  }
+  .chat-launch:hover { background: #084a52; }
+  .chat {
+    position: fixed; right: 24px; bottom: 84px; z-index: 31;
+    width: min(410px, calc(100% - 32px)); height: min(600px, calc(100vh - 120px));
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(28,43,58,.22);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .chat-head { padding: 12px 14px 12px 16px; background: var(--ink); color: #fff; display: flex; align-items: center; gap: 10px; }
+  .chat-head small { display: block; color: #9fb0bf; font-size: 12px; font-weight: 400; }
+  .chat-close { margin-left: auto; background: none; border: 0; color: #c9d3dc; font-size: 22px; line-height: 1; padding: 4px 6px; }
+  .chat-log { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background: var(--page); }
+  .msg { max-width: 90%; padding: 10px 13px; border-radius: 12px; font-size: 14px; line-height: 1.45; }
+  .msg p { margin: 0 0 6px; }
+  .msg p:last-child { margin-bottom: 0; }
+  .msg-user { align-self: flex-end; background: var(--brand); color: #fff; border-bottom-right-radius: 4px; }
+  .msg-bot { align-self: flex-start; background: var(--surface); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+  .msg-bot ul { margin: 6px 0; padding-left: 18px; }
+  .msg-bot li { margin-bottom: 5px; }
+  .msg-bot .sev { font-size: 11.5px; padding: 1px 6px; }
+  .msg-system { align-self: center; font-size: 12px; color: var(--ink-faint); }
+  .msg-src { font-size: 12px; color: var(--ink-faint); margin-top: 6px; }
+  .msg-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .msg-actions .btn { padding: 4px 10px; font-size: 13px; }
+  .typing span { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--ink-faint); margin-right: 3px; animation: blink 1s infinite; }
+  .typing span:nth-child(2) { animation-delay: .2s; }
+  .typing span:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px 0; background: var(--surface); border-top: 1px solid var(--line); }
+  .chip { border: 1px solid #b9dadd; background: var(--brand-soft); color: #0a4c53; border-radius: 999px; padding: 3px 10px; font-size: 12.5px; }
+  .chip:hover { border-color: var(--brand); }
+  .chat-form { display: flex; gap: 8px; padding: 10px 12px 6px; background: var(--surface); }
+  .chat-form input { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 10px; font: inherit; font-size: 14px; color: var(--ink); }
+  .chat-note { font-size: 11.5px; color: var(--ink-faint); padding: 0 12px 10px; background: var(--surface); }
+  .drawer { z-index: 41; }
+  .scrim { z-index: 40; }
+  .toast { z-index: 50; }
+
+  /* Guide d'utilisation */
+  .guide { max-width: 860px; }
+  .guide-lead { font-size: 17px; color: var(--ink-soft); max-width: 65ch; }
+  .steps { list-style: none; counter-reset: s; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 18px 0 30px; }
+  .steps li { counter-increment: s; padding: 16px 18px; font-size: 14.5px; }
+  .steps li::before {
+    content: counter(s); display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+    background: var(--brand); color: #fff; font-weight: 600; font-size: 13px; margin-bottom: 8px;
+  }
+  .guide h2.guide-part { font-size: 20px; margin: 30px 0 12px; }
+  .guide-sec { padding: 20px 24px; margin-bottom: 12px; }
+  .guide-sec h3 { font-size: 17px; margin-bottom: 4px; }
+  .guide-sec > p { color: var(--ink-soft); max-width: 70ch; }
+  .guide-sec dl { display: grid; grid-template-columns: 170px 1fr; gap: 8px 18px; margin: 12px 0 0; font-size: 14.5px; }
+  .guide-sec dt { font-weight: 600; color: var(--ink-soft); }
+  .guide-sec dd { margin: 0; }
+  .guide-go { margin-top: 12px; }
+  .ask-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .sev-legend { display: grid; grid-template-columns: auto 1fr; gap: 10px 16px; align-items: start; margin-top: 12px; font-size: 14.5px; }
+  .faq details { border-top: 1px solid var(--line-soft); padding: 12px 0; }
+  .faq details:first-of-type { border-top: 0; }
+  .faq summary { cursor: pointer; font-weight: 600; }
+  .faq details p { margin: 8px 0 0; color: var(--ink-soft); max-width: 70ch; }
+
   @media (max-width: 900px) {
+    .steps { grid-template-columns: 1fr; }
+    .guide-sec dl { grid-template-columns: 1fr; gap: 2px; }
+    .guide-sec dd { margin-bottom: 8px; }
+    .chat-launch { right: 16px; bottom: 16px; }
+    .chat { right: 16px; bottom: 72px; height: min(600px, calc(100vh - 100px)); }
     .app { grid-template-columns: 1fr; }
     .rail { flex-direction: row; flex-wrap: wrap; padding: 10px 12px; gap: 4px; }
     .brand { padding: 0 8px 0 0; width: 100%; }
@@ -275,6 +351,7 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .drawer, .scrim, .toast { transition: none; }
+    .typing span { animation: none; opacity: .6; }
   }
 </style>
 </head>
@@ -306,6 +383,10 @@
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
       Matrice des dépendances
     </button>
+    <button class="nav-btn" data-view="guide">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M9 8h6"/></svg>
+      Guide d'utilisation
+    </button>
     <div class="rail-foot">Maquette de démonstration. Données fictives.</div>
   </nav>
 
@@ -329,6 +410,28 @@
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" aria-hidden="true"></aside>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<button class="chat-launch" id="chatLaunch" aria-expanded="false" aria-controls="chat">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v11H9l-5 4z"/></svg>
+  Poser une question
+</button>
+<section class="chat" id="chat" aria-label="Assistant conversationnel" hidden>
+  <div class="chat-head">
+    <div class="brand-mark" aria-hidden="true" style="width:28px;height:28px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M8.7 10.7l6.6-3.4M8.7 13.3l6.6 3.4"/></svg>
+    </div>
+    <div><b>Assistant d'impact</b><small id="chatContext"></small></div>
+    <button class="chat-close" id="chatClose" aria-label="Fermer l'assistant">×</button>
+  </div>
+  <div class="chat-log" id="chatLog" aria-live="polite"></div>
+  <div class="chips" id="chatChips"></div>
+  <form class="chat-form" id="chatForm" autocomplete="off">
+    <label for="chatInput" class="sr-only" style="position:absolute;left:-9999px">Votre question</label>
+    <input id="chatInput" placeholder="Posez votre question sur vos projets…">
+    <button class="btn btn-primary" type="submit">Envoyer</button>
+  </form>
+  <div class="chat-note">Maquette : réponses préparées à partir des données fictives.</div>
+</section>
 
 <script>
 /* ---------- Données fictives ---------- */
@@ -917,10 +1020,276 @@ function renderMatrix() {
   `;
 }
 
+/* ---------- Écran 6 : guide d'utilisation ---------- */
+const SAMPLE_QUESTIONS = [
+  "Qu'est-ce qui a changé cette semaine ?",
+  "Quels jalons sont menacés ?",
+  "Quelles actions dois-je lancer ?",
+  "Prépare mon rapport hebdo",
+  "De quels projets je dépends ?",
+  "Où en est la Migration Guichet Sinistres ?",
+];
+
+function renderGuide() {
+  const ask = q => `<button class="chip" data-ask="${esc(q)}">${esc(q)}</button>`;
+  return `
+  <div class="guide">
+    <h1>Guide d'utilisation</h1>
+    <p class="guide-lead">L'assistant d'impact lit chaque semaine les documents approuvés des autres projets et vous signale ce qui peut toucher le vôtre. Il propose, vous décidez : il ne contacte personne et ne modifie aucun document sans votre accord.</p>
+
+    <ol class="steps">
+      <li class="panel"><b>Choisissez votre projet</b><br>En haut de l'écran, dans « Mon projet ». Tous les écrans s'adaptent à ce choix.</li>
+      <li class="panel"><b>Lisez le scan de la semaine</b><br>La première phrase résume la situation. Ouvrez le détail des points critiques.</li>
+      <li class="panel"><b>Validez votre rapport</b><br>Acceptez ou rejetez les suggestions, puis mettez à jour le rapport hebdo.</li>
+    </ol>
+
+    <h2 class="guide-part">Les écrans</h2>
+
+    <section class="panel guide-sec">
+      <h3>Scan de la semaine</h3>
+      <p>Votre point de départ chaque lundi : ce qui a changé ailleurs et vous concerne.</p>
+      <dl>
+        <dt>Phrase de synthèse</dt><dd>Le nombre de points critiques et à surveiller pour votre projet.</dd>
+        <dt>Liste des impacts</dt><dd>Classée du plus urgent au moins urgent. Chaque ligne indique ce qui change, l'impact pour vous, le projet source, le document preuve et qui doit traiter le sujet.</dd>
+        <dt>Informations mineures</dt><dd>Masquées par défaut. Cliquez sur « Afficher les informations mineures » pour les voir.</dd>
+        <dt>Période</dt><dd>« Cette semaine » ou « Les 2 dernières semaines », en haut de l'écran.</dd>
+      </dl>
+      <button class="btn guide-go" data-view="scan">Ouvrir le scan</button>
+    </section>
+
+    <section class="panel guide-sec">
+      <h3>Détail d'un impact</h3>
+      <p>S'ouvre sur la droite quand vous cliquez sur « Voir le détail ».</p>
+      <dl>
+        <dt>Pourquoi ça vous concerne</dt><dd>L'impact expliqué par dimension : planning, périmètre, coordination.</dd>
+        <dt>Preuve</dt><dd>L'extrait exact du document source, la phrase clé surlignée, avec sa date et le terme détecté.</dd>
+        <dt>Action recommandée</dt><dd>Une action concrète et le type de responsable à solliciter.</dd>
+        <dt>Vos choix</dt><dd>« Ajouter au plan d'actions » retient le point pour votre rapport. « Ignorer ce point » l'écarte. « Annuler » revient sur votre choix.</dd>
+      </dl>
+    </section>
+
+    <section class="panel guide-sec">
+      <h3>Rapport hebdo</h3>
+      <p>Un brouillon préparé par l'assistant. Le rapport officiel ne change qu'après votre validation.</p>
+      <dl>
+        <dt>Ajout proposé</dt><dd>Bord vert : un risque ou une action à ajouter, avec sa source.</dd>
+        <dt>Modification proposée</dt><dd>Bord orange : un jalon dont la date change. L'ancienne date est barrée.</dd>
+        <dt>Accepter ou Rejeter</dt><dd>Sur chaque suggestion. Les points ajoutés au plan d'actions sont déjà acceptés.</dd>
+        <dt>Mettre à jour le rapport</dt><dd>Applique uniquement les suggestions acceptées.</dd>
+      </dl>
+      <button class="btn guide-go" data-view="report">Ouvrir le rapport</button>
+    </section>
+
+    <section class="panel guide-sec">
+      <h3>Fiches projets</h3>
+      <p>Le détail d'un projet, quand vous en avez besoin : météo, chef de projet, sponsor, dernières mises à jour, réalisations du mois, prochains jalons et dépendances.</p>
+      <button class="btn guide-go" data-view="fiche">Ouvrir les fiches</button>
+    </section>
+
+    <section class="panel guide-sec">
+      <h3>Matrice des dépendances</h3>
+      <p>Qui dépend de qui, et sur quoi. Chaque ligne est un projet, chaque colonne un projet dont il dépend. Une case marquée a bougé pendant la période choisie : cliquez dessus pour voir le détail.</p>
+      <button class="btn guide-go" data-view="matrix">Ouvrir la matrice</button>
+    </section>
+
+    <section class="panel guide-sec">
+      <h3>Poser une question à l'assistant</h3>
+      <p>Le bouton « Poser une question », en bas à droite, ouvre une conversation. L'assistant répond pour le projet sélectionné, cite ses sources et vous emmène vers le bon écran. Essayez :</p>
+      <div class="ask-list">${SAMPLE_QUESTIONS.map(ask).join("")}</div>
+    </section>
+
+    <h2 class="guide-part">Niveaux de sévérité</h2>
+    <section class="panel guide-sec">
+      <div class="sev-legend">
+        ${sevTag("crit")}<span>Un jalon, un livrable ou une obligation est compromis. À traiter cette semaine.</span>
+        ${sevTag("watch")}<span>Un changement qui demandera un ajustement si rien n'est fait. À planifier.</span>
+        ${sevTag("info")}<span>Bon à savoir, sans action urgente. Masqué par défaut.</span>
+      </div>
+    </section>
+
+    <h2 class="guide-part">Questions fréquentes</h2>
+    <section class="panel guide-sec faq">
+      <details><summary>D'où viennent les informations ?</summary>
+        <p>Uniquement des documents approuvés des projets : comptes rendus de SteerCo, notes d'architecture, plannings. Un brouillon n'est jamais pris en compte.</p></details>
+      <details><summary>L'assistant peut-il se tromper ?</summary>
+        <p>Il peut mal juger un impact. C'est pourquoi chaque point affiche sa preuve : vérifiez l'extrait avant d'agir, et ignorez le point s'il ne vous concerne pas.</p></details>
+      <details><summary>Est-ce que l'assistant modifie mes documents ?</summary>
+        <p>Non. Il propose des modifications dans un brouillon. Seules celles que vous acceptez sont appliquées.</p></details>
+      <details><summary>Est-ce que les autres chefs de projet voient mes choix ?</summary>
+        <p>Non. Accepter ou ignorer un point ne change que votre vue et votre rapport.</p></details>
+      <details><summary>Comment l'assistant sait-il qu'un projet dépend d'un autre ?</summary>
+        <p>Grâce à la matrice des dépendances, complétée par les termes repérés dans les documents (un système, une API, un prestataire).</p></details>
+    </section>
+    <p class="faint" style="margin-top:20px">Maquette de démonstration : les projets, documents et réponses sont fictifs.</p>
+  </div>`;
+}
+
+/* ---------- Chatbot simulé ---------- */
+const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/['’]/g, " ");
+const PROJECT_PATTERNS = {
+  ESP: /espace client|portail/, SIN: /sinistre|guichet/, DORA: /\bdora\b|resilience/,
+  AUTO: /offre auto|auto connectee|telematique|\bauto\b/, S2: /solvabilite|\bs2\b|cloture/, GED: /\bged\b|courrier|numerisation|dematerialisation/,
+};
+const chat = { open: false, started: false, busy: false };
+
+function detectProject(q) {
+  return ORDER.find(k => PROJECT_PATTERNS[k].test(q)) || null;
+}
+const srcLine = fs => {
+  const docs = [...new Map(fs.map(f => [f.doc + f.docDate, `${f.doc} (${fmt(f.docDate)})`])).values()];
+  return docs.length ? `Sources : ${docs.map(esc).join(" ; ")}.` : "";
+};
+const openBtns = fs => fs.slice(0, 3).map((f, i) => ({ label: fs.length > 1 ? `Détail ${i + 1}` : "Voir le détail", attrs: `data-open="${f.id}"` }));
+const findingItem = f => `<li>${sevTag(f.sev)} ${esc(f.title)} <span class="faint">(${pname(f.source)})</span></li>`;
+
+function answer(raw) {
+  const q = norm(raw), p = state.project, P = PROJECTS[p];
+  const other = detectProject(q.replace(PROJECT_PATTERNS[p], ""));
+  const has = re => re.test(q);
+
+  if (has(/^(bonjour|salut|hello|coucou)\b|aide|que sais-tu|tu peux faire|que peux-tu/)) {
+    return { html: `<p>Bonjour ${P.pm.split(" ")[0]}. Je réponds à partir des documents approuvés des 6 projets, pour <b>${pname(p)}</b>. Je peux :</p>
+      <ul><li>résumer ce qui a changé et vous concerne ;</li><li>lister les jalons menacés et les actions à lancer ;</li><li>expliquer vos dépendances ;</li><li>préparer votre rapport hebdo ;</li><li>faire le point sur un autre projet.</li></ul>` };
+  }
+  if (has(/merci/)) return { html: `<p>Avec plaisir. Autre chose sur ${pname(p)} ?</p>` };
+
+  if (has(/rapport|reporting hebdo|compte rendu hebdo|prepare/)) {
+    const s = suggestionsFor(p);
+    if (!s.length) return { html: `<p>Aucune modification à proposer pour le rapport de ${pname(p)} cette semaine.</p>` };
+    const n = k => s.filter(x => x.kind === k).length;
+    return { html: `<p>J'ai préparé ${plural(s.length, "suggestion", "suggestions")} pour votre rapport de la semaine 43 :</p>
+      <ul><li>${plural(n("risk"), "risque à ajouter", "risques à ajouter")}</li><li>${plural(n("action"), "action à ajouter", "actions à ajouter")}</li>${n("planning") ? `<li>${plural(n("planning"), "jalon à replanifier", "jalons à replanifier")}</li>` : ""}</ul>
+      <p>Rien ne sera modifié sans votre validation.</p>`,
+      actions: [{ label: "Ouvrir le brouillon", attrs: `data-view="report"` }] };
+  }
+
+  if (has(/jalon|planning|retard|deadline|echeance|menace|date/)) {
+    const F = FICHES[p];
+    const weak = F.milestones.map((m, i) => [m, i]).filter(([m]) => m[2] === "risk" || m[2] === "replan");
+    if (!weak.length) return { html: `<p>Aucun jalon de ${pname(p)} n'est menacé pour l'instant.</p>`, actions: [{ label: "Voir la fiche projet", attrs: `data-fiche="${p}"` }] };
+    const causes = [];
+    const items = weak.map(([m, i]) => {
+      const cause = FINDINGS.find(f => f.target === p && f.planning && f.planning.ms === i);
+      if (cause) causes.push(cause);
+      return `<li><b>${fmt(m[0])}, ${esc(m[1])}</b> : ${m[2] === "risk" ? "à risque" : "replanifié"}.${cause ? ` Cause : ${esc(cause.title.charAt(0).toLowerCase() + cause.title.slice(1))} (${pname(cause.source)}).` : ""}</li>`;
+    }).join("");
+    return { html: `<p>${plural(weak.length, "jalon est fragilisé", "jalons sont fragilisés")} sur ${pname(p)} :</p><ul>${items}</ul>`,
+      src: srcLine(causes), actions: [...openBtns(causes), { label: "Voir la fiche projet", attrs: `data-fiche="${p}"` }] };
+  }
+
+  if (has(/qui depend|dependent de (moi|nous)|depend de moi|impacte par moi/)) {
+    const ds = DEPS.filter(d => d.to === p);
+    return { html: `<p>${plural(ds.length, "projet dépend", "projets dépendent")} de ${pname(p)} :</p><ul>${ds.map(d => `<li><b>${pname(d.from)}</b> : ${esc(d.label)}</li>`).join("")}</ul>`,
+      actions: [{ label: "Ouvrir la matrice", attrs: `data-view="matrix"` }] };
+  }
+  if (has(/depend/)) {
+    const ds = DEPS.filter(d => d.from === p);
+    return { html: `<p>${pname(p)} dépend de ${plural(ds.length, "projet", "projets")} :</p><ul>${ds.map(d => `<li><b>${pname(d.to)}</b> : ${esc(d.label)}</li>`).join("")}</ul>`,
+      actions: [{ label: "Ouvrir la matrice", attrs: `data-view="matrix"` }] };
+  }
+
+  if (has(/action|que dois|quoi faire|faire cette semaine|a faire|todo|prochaine etape/)) {
+    const fs = findingsFor(p, "two").filter(f => f.sev !== "info" && state.decisions[f.id] !== "ignored");
+    if (!fs.length) return { html: `<p>Aucune action urgente pour ${pname(p)} en ce moment.</p>` };
+    return { html: `<p>Je vous recommande ${plural(fs.length, "action", "actions")} :</p><ul>${fs.map(f => `<li>${esc(f.action)} <span class="faint">Responsable : ${esc(f.owner)}.</span></li>`).join("")}</ul><p>Vous restez décisionnaire : je ne contacte personne.</p>`,
+      src: srcLine(fs), actions: openBtns(fs) };
+  }
+
+  if (has(/critique|urgent|priorit|grave|bloquant/)) {
+    const fs = findingsFor(p, "two").filter(f => f.sev === "crit");
+    if (!fs.length) return { html: `<p>Aucun point critique pour ${pname(p)} sur les deux dernières semaines.</p>` };
+    return { html: `<p>${plural(fs.length, "point critique", "points critiques")} pour ${pname(p)} :</p><ul>${fs.map(f => `<li><b>${esc(f.title)}</b>. ${esc(f.impact)}</li>`).join("")}</ul>`,
+      src: srcLine(fs), actions: openBtns(fs) };
+  }
+
+  if (other && other !== p && has(/change|bouge|nouveau|impact|vient|touche|concerne/)) {
+    const fs = findingsFor(p, "two").filter(f => f.source === other);
+    if (!fs.length) return { html: `<p>Rien de nouveau venant de ${pname(other)} qui concerne ${pname(p)} sur les deux dernières semaines.</p>`, actions: [{ label: `Fiche ${pname(other)}`, attrs: `data-fiche="${other}"` }] };
+    return { html: `<p>Ce qui vient de <b>${pname(other)}</b> et vous concerne :</p><ul>${fs.map(findingItem).join("")}</ul>`, src: srcLine(fs), actions: openBtns(fs) };
+  }
+  if (other) {
+    const O = PROJECTS[other], F = FICHES[other];
+    const next = F.milestones.slice().sort((a, b) => a[0].localeCompare(b[0]))[0];
+    return { html: `<p><b>${O.name}</b> est « ${O.weather[1].toLowerCase()} », en phase ${O.phase.toLowerCase()}. Chef de projet : ${O.pm}.</p>
+      <ul><li>Dernière mise à jour (${fmt(F.updates[0][0])}) : ${esc(F.updates[0][1])}</li><li>Prochain jalon : ${esc(next[1])}, le ${fmt(next[0])}.</li></ul>`,
+      actions: [{ label: "Voir la fiche", attrs: `data-fiche="${other}"` }] };
+  }
+
+  if (has(/change|bouge|nouveau|neuf|semaine|impact|resume|synthese|point|situation|ou en est|quoi/)) {
+    const fs = findingsFor(p, state.period).filter(f => f.sev !== "info");
+    const when = state.period === "week" ? "Cette semaine" : "Sur les deux dernières semaines";
+    if (!fs.length) return { html: `<p>${when}, rien d'important pour ${pname(p)}.</p>` };
+    return { html: `<p>${when}, ${plural(fs.length, "point important", "points importants")} pour ${pname(p)} :</p><ul>${fs.map(findingItem).join("")}</ul>`,
+      src: srcLine(fs), actions: openBtns(fs) };
+  }
+
+  const STOP = ["les", "des", "est", "que", "qui", "quoi", "moi", "nous", "vous", "mon", "mes", "une", "sur", "par", "pas", "parle", "dis", "explique", "quelle", "quelles", "quels", "quel", "comment", "pourquoi", "avec", "dans", "pour", "cette", "sont", "plus", "tout"];
+  const words = q.split(/[^a-z0-9]+/).filter(w => w.length >= 3 && !STOP.includes(w));
+  if (words.length) {
+    const score = f => words.filter(w => norm(f.title + " " + f.excerpt + " " + f.keyword + " " + f.impact).includes(w)).length;
+    let fs = FINDINGS.filter(f => f.target === p && score(f) > 0);
+    if (!fs.length) fs = FINDINGS.filter(f => score(f) > 0);
+    fs = [...new Map(fs.sort((a, b) => score(b) - score(a)).map(f => [f.title, f])).values()].slice(0, 3);
+    if (fs.length) return { html: `<p>Voici ce que j'ai trouvé dans les documents approuvés :</p><ul>${fs.map(f => `<li>${sevTag(f.sev)} ${esc(f.title)} <span class="faint">(${pname(f.source)} vers ${pname(f.target)})</span></li>`).join("")}</ul>`,
+      src: srcLine(fs), actions: openBtns(fs) };
+  }
+
+  return { html: `<p>Je n'ai rien trouvé sur ce sujet dans les documents approuvés. Essayez une des questions ci-dessous, ou citez un projet, un système ou un jalon.</p>` };
+}
+
+function addMsg(kind, html) {
+  const log = document.getElementById("chatLog");
+  const el = document.createElement("div");
+  el.className = `msg msg-${kind}`;
+  el.innerHTML = html;
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+  return el;
+}
+function ask(question) {
+  if (chat.busy || !question.trim()) return;
+  if (!chat.open) toggleChat(true);
+  chat.busy = true;
+  addMsg("user", esc(question));
+  const typing = addMsg("bot", `<span class="typing" aria-label="L'assistant écrit"><span></span><span></span><span></span></span>`);
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  setTimeout(() => {
+    const a = answer(question);
+    typing.innerHTML = a.html
+      + (a.src ? `<div class="msg-src">${a.src}</div>` : "")
+      + (a.actions && a.actions.length ? `<div class="msg-actions">${a.actions.map(b => `<button class="btn" ${b.attrs}>${esc(b.label)}</button>`).join("")}</div>` : "");
+    document.getElementById("chatLog").scrollTop = 1e6;
+    chat.busy = false;
+  }, reduce ? 150 : 700);
+}
+function toggleChat(open) {
+  chat.open = open;
+  document.getElementById("chat").hidden = !open;
+  document.getElementById("chatLaunch").setAttribute("aria-expanded", open);
+  if (open && !chat.started) {
+    chat.started = true;
+    addMsg("bot", `<p>Bonjour ${PROJECTS[state.project].pm.split(" ")[0]}, je suis l'assistant d'impact. Que voulez-vous savoir sur <b>${pname(state.project)}</b> ?</p>`);
+  }
+  if (open) document.getElementById("chatInput").focus();
+}
+function updateChatContext() {
+  document.getElementById("chatContext").textContent = `Projet : ${pname(state.project)}`;
+}
+document.getElementById("chatChips").innerHTML = SAMPLE_QUESTIONS.slice(0, 4).map(q => `<button class="chip" data-ask="${esc(q)}">${esc(q)}</button>`).join("");
+document.getElementById("chatLaunch").addEventListener("click", () => toggleChat(!chat.open));
+document.getElementById("chatClose").addEventListener("click", () => { toggleChat(false); document.getElementById("chatLaunch").focus(); });
+document.getElementById("chatForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const input = document.getElementById("chatInput");
+  ask(input.value);
+  input.value = "";
+});
+
 /* ---------- Rendu et événements ---------- */
 function render() {
   const v = document.getElementById("view");
-  v.innerHTML = { scan: renderScan, report: renderReport, fiche: renderFiche, matrix: renderMatrix }[state.view]();
+  v.innerHTML = { scan: renderScan, report: renderReport, fiche: renderFiche, matrix: renderMatrix, guide: renderGuide }[state.view]();
+  updateChatContext();
   document.querySelectorAll(".nav-btn").forEach(b => b.toggleAttribute("aria-current", b.dataset.view === state.view));
   document.querySelectorAll(".nav-btn[aria-current]").forEach(b => b.setAttribute("aria-current", "page"));
   document.getElementById("periodField").style.visibility = (state.view === "scan" || state.view === "matrix") ? "visible" : "hidden";
@@ -929,7 +1298,10 @@ function render() {
 function go(view) { state.view = view; closeDrawer(); render(); window.scrollTo(0, 0); }
 
 document.getElementById("projectSel").innerHTML = ORDER.map(k => `<option value="${k}">${pname(k)}</option>`).join("");
-document.getElementById("projectSel").addEventListener("change", e => { state.project = e.target.value; state.fiche = null; state.showInfo = false; render(); });
+document.getElementById("projectSel").addEventListener("change", e => {
+  state.project = e.target.value; state.fiche = null; state.showInfo = false; render();
+  if (chat.started) addMsg("system", `Projet changé : ${pname(state.project)}`);
+});
 document.getElementById("periodSel").addEventListener("change", e => { state.period = e.target.value; render(); });
 document.getElementById("scrim").addEventListener("click", closeDrawer);
 document.addEventListener("keydown", e => { if (e.key === "Escape" && state.drawer) closeDrawer(); });
@@ -938,6 +1310,7 @@ document.addEventListener("click", e => {
   const t = e.target.closest("button");
   if (!t) return;
   const ds = t.dataset;
+  if (ds.ask) return ask(ds.ask);
   if (ds.view) return go(ds.view);
   if (ds.open) return openDrawer(ds.open);
   if (t.id === "drawerClose") return closeDrawer();
